@@ -23,6 +23,7 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://app-user-manuel-ieetek.vercel.app'),
   title: 'Taşınabilir Güç Kaynağı Uygulaması - Kullanıcı Kılavuzu',
   description: 'Singo1000, Singo2000Pro, P1800, P3200 ve diğer modeller için Taşınabilir Güç Kaynağı Uygulaması Kullanıcı Kılavuzu V3.0',
   keywords: ['güç kaynağı', 'power station', 'kullanım kılavuzu', 'Landbook', 'Wonderfree', 'Singo1000', 'Singo2000Pro', 'P1800', 'P3200'],
