@@ -1,0 +1,6 @@
+# Cursor Rules for Tailwind CSS Project
+
+## CSS Linting
+- Ignore `@tailwind` and `@apply` directives - these are processed by PostCSS during build
+- Tailwind directives are valid and required for the project
+
