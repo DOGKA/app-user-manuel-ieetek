@@ -133,11 +133,26 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionClick }
     setShowResults(false)
   }
 
-  const handleSearchResultClick = (item: SearchItem) => {
-    onSectionClick(item.sectionId)
+  const handleSearchResultClick = (e: React.MouseEvent, item: SearchItem) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    // Close everything first
     setSearchQuery('')
     setShowResults(false)
     setIsOpen(false)
+    
+    // Small delay to ensure UI updates, then scroll
+    setTimeout(() => {
+      const element = document.getElementById(item.sectionId)
+      if (element) {
+        const offset = 80
+        const elementPosition = element.getBoundingClientRect().top
+        const offsetPosition = elementPosition + window.pageYOffset - offset
+        window.scrollTo({ top: offsetPosition, behavior: 'smooth' })
+      }
+      onSectionClick(item.sectionId)
+    }, 100)
   }
 
   // Filter sections based on search query
@@ -265,7 +280,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionClick }
                         {searchResults.map((result) => (
                           <button
                             key={result.id}
-                            onClick={() => handleSearchResultClick(result)}
+                            onClick={(e) => handleSearchResultClick(e, result)}
                             className="w-full text-left px-3 py-2.5 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
                           >
                             <p className="text-sm font-medium text-white truncate">{result.title}</p>
@@ -364,7 +379,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionClick }
                     {searchResults.map((result) => (
                       <button
                         key={result.id}
-                        onClick={() => handleSearchResultClick(result)}
+                        onClick={(e) => handleSearchResultClick(e, result)}
                         className="w-full text-left px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0"
                       >
                         <div className="flex items-start gap-3">
