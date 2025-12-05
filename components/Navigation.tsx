@@ -13,6 +13,7 @@ import {
   SettingsIcon,
   AutomationIcon,
   ChevronRightIcon,
+  SearchIcon,
 } from './icons'
 
 interface NavSubsection {
@@ -79,6 +80,8 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionClick }
   const [isOpen, setIsOpen] = useState(false)
   const [expandedSections, setExpandedSections] = useState<string[]>(['installation', 'connection', 'smart-control'])
   const [scrolled, setScrolled] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchFocused, setSearchFocused] = useState(false)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -99,7 +102,31 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionClick }
   const handleNavClick = (sectionId: string) => {
     onSectionClick(sectionId)
     setIsOpen(false)
+    setSearchQuery('')
   }
+
+  // Filter sections based on search query
+  const filterSections = (sections: NavSection[], query: string): NavSection[] => {
+    if (!query.trim()) return sections
+    
+    const lowerQuery = query.toLowerCase()
+    return sections.reduce<NavSection[]>((acc, section) => {
+      const titleMatch = section.title.toLowerCase().includes(lowerQuery)
+      const matchingSubsections = section.subsections?.filter(sub => 
+        sub.title.toLowerCase().includes(lowerQuery)
+      )
+      
+      if (titleMatch) {
+        acc.push(section)
+      } else if (matchingSubsections && matchingSubsections.length > 0) {
+        acc.push({ ...section, subsections: matchingSubsections })
+      }
+      
+      return acc
+    }, [])
+  }
+
+  const filteredSections = filterSections(navSections, searchQuery)
 
   return (
     <>
@@ -149,10 +176,46 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionClick }
             className="fixed top-0 left-0 bottom-0 w-80 bg-dark-900/95 backdrop-blur-xl z-50 md:hidden overflow-y-auto"
           >
             <div className="p-6 pt-20">
+              {/* Mobile Search Bar */}
+              <div className="mb-6">
+                <div className={`relative transition-all duration-300 ${
+                  searchFocused ? 'ring-2 ring-green-500/50 rounded-xl' : ''
+                }`}>
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <SearchIcon 
+                      size={18} 
+                      className={`transition-colors duration-200 ${
+                        searchFocused ? 'text-green-400' : 'text-slate-500'
+                      }`} 
+                    />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Ara..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setSearchFocused(true)}
+                    onBlur={() => setSearchFocused(false)}
+                    className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:bg-white/10 focus:border-green-500/50 transition-all duration-200"
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white transition-colors"
+                    >
+                      <CloseIcon size={14} />
+                    </button>
+                  )}
+                </div>
+                {searchQuery && filteredSections.length === 0 && (
+                  <p className="mt-2 text-xs text-slate-500 text-center">Sonuç bulunamadı</p>
+                )}
+              </div>
+
               <NavContent
-                sections={navSections}
+                sections={filteredSections}
                 activeSection={activeSection}
-                expandedSections={expandedSections}
+                expandedSections={searchQuery ? filteredSections.map(s => s.id) : expandedSections}
                 onSectionClick={handleNavClick}
                 onToggleExpand={toggleExpand}
               />
@@ -165,7 +228,7 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionClick }
       <aside className="hidden md:block fixed top-0 left-0 bottom-0 w-72 lg:w-80 glass-strong z-40 overflow-y-auto">
         <div className="p-6">
           {/* Logo */}
-          <div className="flex items-center gap-3 mb-8 pb-6 border-b border-white/10">
+          <div className="flex items-center gap-3 mb-6 pb-6 border-b border-white/10">
             <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center glow-green">
               <BatteryIcon className="text-white" size={24} />
             </div>
@@ -175,10 +238,46 @@ const Navigation: React.FC<NavigationProps> = ({ activeSection, onSectionClick }
             </div>
           </div>
 
+          {/* Search Bar */}
+          <div className="mb-6">
+            <div className={`relative group transition-all duration-300 ${
+              searchFocused ? 'ring-2 ring-green-500/50' : ''
+            }`}>
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <SearchIcon 
+                  size={18} 
+                  className={`transition-colors duration-200 ${
+                    searchFocused ? 'text-green-400' : 'text-slate-500'
+                  }`} 
+                />
+              </div>
+              <input
+                type="text"
+                placeholder="Ara..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:bg-white/10 focus:border-green-500/50 transition-all duration-200"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-white transition-colors"
+                >
+                  <CloseIcon size={14} />
+                </button>
+              )}
+            </div>
+            {searchQuery && filteredSections.length === 0 && (
+              <p className="mt-2 text-xs text-slate-500 text-center">Sonuç bulunamadı</p>
+            )}
+          </div>
+
           <NavContent
-            sections={navSections}
+            sections={filteredSections}
             activeSection={activeSection}
-            expandedSections={expandedSections}
+            expandedSections={searchQuery ? filteredSections.map(s => s.id) : expandedSections}
             onSectionClick={handleNavClick}
             onToggleExpand={toggleExpand}
           />
